@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>To-Do List</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 20px;
+        }
+        h1 {
+            font-size: 24px;
+        }
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+        .task-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .task-item span {
+            margin-left: 10px;
+        }
+        .delete-btn {
+            margin-left: auto;
+            font-size: 14px;
+        }
+        .task-timer {
+            font-size: 0.85em;
+            color: grey;
+        }
+    </style>
+</head>
+<body>
+    <script>
+        // Full to-do list implementation with user-friendly UI
+        const appHTML = `
+            <h1>To-Do List</h1>
+            <p>What do you need to do?</p>
+            <input type="text" id="taskInput" placeholder="E.g., Buy groceries">
+            <p>By when?</p>
+            <input type="datetime-local" id="customDeadlineInput">
+            <button id="addTaskButton">Add to List</button>
+            <h2>Ongoing Tasks</h2>
+            <ul id="taskList"></ul>
+        `;
+
+        document.body.innerHTML = appHTML;
+
+        const taskList = document.querySelector("#taskList");
+        const taskInput = document.querySelector("#taskInput");
+        const customDeadlineInput = document.querySelector("#customDeadlineInput");
+        const addTaskButton = document.querySelector("#addTaskButton");
+
+        addTaskButton.onclick = () => {
+            const taskText = taskInput.value.trim();
+            const deadline = customDeadlineInput.value ? new Date(customDeadlineInput.value).toISOString() : null;
+            if (taskText && deadline) {
+                addTaskToDOM(taskText, false, deadline);
+                saveTasksToLocalStorage();
+                taskInput.value = "";
+                customDeadlineInput.value = "";
+            }
+        };
+
+        // Load tasks from localStorage on page load
+        window.onload = () => {
+            const tasks = JSON.parse(localStorage.getItem("tasks")) || [];
+            tasks.forEach(task => addTaskToDOM(task.text, task.completed, task.deadline));
+            updateTimers();
+        };
+
+        // Save tasks to localStorage
+        const saveTasksToLocalStorage = () => {
+            const tasks = Array.from(document.querySelectorAll(".task-item")).map(task => {
+                return {
+                    text: task.querySelector(".task-text").textContent,
+                    completed: task.querySelector(".task-checkbox").checked,
+                    deadline: task.querySelector(".task-timer").dataset.deadline
+                };
+            });
+            localStorage.setItem("tasks", JSON.stringify(tasks));
+        };
+
+        // Add task to the DOM
+        const addTaskToDOM = (taskText, completed = false, deadline = null) => {
+            if (!taskText) return;
+
+            const taskItem = document.createElement("li");
+            taskItem.classList.add("task-item");
+
+            const checkbox = document.createElement("input");
+            checkbox.type = "checkbox";
+            checkbox.classList.add("task-checkbox");
+            checkbox.checked = completed;
+            checkbox.onchange = () => {
+                toggleTaskCompletion(taskItem, checkbox.checked);
+                saveTasksToLocalStorage();
+            };
+            taskItem.appendChild(checkbox);
+
+            const taskSpan = document.createElement("span");
+            taskSpan.classList.add("task-text");
+            taskSpan.textContent = taskText;
+            if (completed) {
+                taskSpan.style.color = "grey";
+                taskSpan.style.fontStyle = "italic";
+            }
+            taskItem.appendChild(taskSpan);
+
+            const timerSpan = document.createElement("span");
+            timerSpan.classList.add("task-timer");
+            timerSpan.dataset.deadline = deadline || "";
+            timerSpan.style.fontSize = "0.85em";
+            timerSpan.style.marginLeft = "8px";
+            timerSpan.style.color = "grey";
+            if (completed) {
+                timerSpan.textContent = " (Complete!)";
+            }
+            taskItem.appendChild(timerSpan);
+
+            const deleteButton = document.createElement("button");
+            deleteButton.textContent = "x";
+            deleteButton.classList.add("delete-btn");
+            deleteButton.style.border = "none";
+            deleteButton.style.background = "transparent";
+            deleteButton.style.cursor = "pointer";
+            deleteButton.onclick = () => deleteTask(taskItem);
+            taskItem.appendChild(deleteButton);
+
+            taskList.appendChild(taskItem);
+            updateTimers();
+        };
+
+        // Toggle task completion
+        const toggleTaskCompletion = (taskItem, completed) => {
+            const taskSpan = taskItem.querySelector(".task-text");
+            const timerSpan = taskItem.querySelector(".task-timer");
+
+            if (completed) {
+                taskSpan.style.color = "grey";
+                taskSpan.style.fontStyle = "italic";
+                timerSpan.textContent = " (Complete!)";
+            } else {
+                taskSpan.style.color = "";
+                taskSpan.style.fontStyle = "";
+                updateTimers();
+            }
+        };
+
+        // Delete task
+        const deleteTask = (taskItem) => {
+            taskItem.remove();
+            saveTasksToLocalStorage();
+        };
+
+        // Update timers for tasks
+        const updateTimers = () => {
+            const now = new Date();
+            document.querySelectorAll(".task-item").forEach(taskItem => {
+                const deadline = taskItem.querySelector(".task-timer").dataset.deadline;
+                const timerSpan = taskItem.querySelector(".task-timer");
+                const checkbox = taskItem.querySelector(".task-checkbox");
+
+                if (checkbox.checked) {
+                    timerSpan.textContent = " (Complete!)";
+                    return;
+                }
+
+                if (deadline) {
+                    const deadlineDate = new Date(deadline);
+                    const diff = deadlineDate - now;
+
+                    if (diff > 0) {
+                        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+                        const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                        const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+                        timerSpan.textContent = ` (Time left: ${days > 0 ? days + "d " : ""}${hours > 0 ? hours + "h " : ""}${minutes}m ${seconds}s)`;
+                    } else {
+                        timerSpan.textContent = " (Deadline passed!)";
+                    }
+                } else {
+                    timerSpan.textContent = "";
+                }
+            });
+        };
+
+        // Update timers every second
+        setInterval(updateTimers, 1000);
+    </script>
+</body>
+</html>
