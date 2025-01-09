@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rock, Paper, Scissors</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin: 0;
+      padding: 0;
+      background-color: #f4f4f9;
+    }
+    h1 {
+      margin-top: 20px;
+    }
+    .choices {
+      margin: 20px 0;
+    }
+    .choices button {
+      padding: 10px 20px;
+      font-size: 18px;
+      margin: 10px;
+      cursor: pointer;
+    }
+    .result {
+      margin-top: 20px;
+      font-size: 20px;
+    }
+    .score {
+      margin-top: 20px;
+      font-size: 22px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Rock, Paper, Scissors</h1>
+
+  <div class="choices" id="choices"></div>
+
+  <div class="result" id="result">Make your choice!</div>
+  <div class="score">
+    Humanity: <span id="human-score">0</span> | Robots: <span id="robot-score">0</span>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const choices = ['rock', 'paper', 'scissors'];
+      const choicesDiv = document.getElementById('choices');
+      let humanScore = 0;
+      let robotScore = 0;
+
+      choices.forEach(choice => {
+        const button = document.createElement('button');
+        button.textContent = choice.charAt(0).toUpperCase() + choice.slice(1);
+        button.addEventListener('click', () => play(choice));
+        choicesDiv.appendChild(button);
+      });
+
+      function getRobotChoice() {
+        const randomIndex = Math.floor(Math.random() * choices.length);
+        return choices[randomIndex];
+      }
+
+      function determineWinner(humanChoice, robotChoice) {
+        if (humanChoice === robotChoice) {
+          return 'draw';
+        }
+
+        if (
+          (humanChoice === 'rock' && robotChoice === 'scissors') ||
+          (humanChoice === 'paper' && robotChoice === 'rock') ||
+          (humanChoice === 'scissors' && robotChoice === 'paper')
+        ) {
+          return 'human';
+        } else {
+          return 'robot';
+        }
+      }
+
+      function play(humanChoice) {
+        const robotChoice = getRobotChoice();
+        const winner = determineWinner(humanChoice, robotChoice);
+
+        if (winner === 'human') {
+          humanScore++;
+          document.getElementById('result').textContent = `You chose ${humanChoice}, Robots chose ${robotChoice}. You win!`;
+        } else if (winner === 'robot') {
+          robotScore++;
+          document.getElementById('result').textContent = `You chose ${humanChoice}, Robots chose ${robotChoice}. Robots win!`;
+        } else {
+          document.getElementById('result').textContent = `You chose ${humanChoice}, Robots chose ${robotChoice}. It's a draw!`;
+        }
+
+        document.getElementById('human-score').textContent = humanScore;
+        document.getElementById('robot-score').textContent = robotScore;
+      }
+    });
+  </script>
+</body>
+</html>
