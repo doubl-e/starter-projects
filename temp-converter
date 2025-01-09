@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Temperature Converter</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f9;
+        }
+        .container {
+            max-width: 400px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #fff;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        label {
+            display: block;
+            margin: 10px 0 5px;
+            font-weight: bold;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .section {
+            margin-bottom: 20px;
+        }
+        .section-title {
+            font-size: 16px;
+            margin-bottom: 10px;
+            font-weight: bold;
+            color: #555;
+        }
+        .button-group {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+        button {
+            padding: 10px 15px;
+            margin: 0 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: #007BFF;
+            color: white;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        #switchButton {
+            margin: 10px 0;
+            background-color: #28a745;
+            font-size: 14px;
+            padding: 8px;
+        }
+        #switchButton:hover {
+            background-color: #1e7e34;
+        }
+        .result {
+            text-align: center;
+            font-size: 18px;
+            font-weight: bold;
+            color: #007BFF;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Temperature Converter</h1>
+        <label for="inputValue">Temperature Value:</label>
+        <input type="number" id="inputValue" placeholder="Enter temperature value">
+
+        <div class="section">
+            <div class="section-title">Input Temperature Type:</div>
+            <div class="button-group" id="inputButtons">
+                <button onclick="setInputType('celsius')">Celsius</button>
+                <button onclick="setInputType('fahrenheit')">Fahrenheit</button>
+                <button onclick="setInputType('kelvin')">Kelvin</button>
+            </div>
+        </div>
+
+        <button id="switchButton" onclick="switchTypes()">Switch Input and Output</button>
+
+        <div class="section">
+            <div class="section-title">Output Temperature Type:</div>
+            <div class="button-group" id="outputButtons">
+                <button onclick="setOutputType('celsius')">Celsius</button>
+                <button onclick="setOutputType('fahrenheit')">Fahrenheit</button>
+                <button onclick="setOutputType('kelvin')">Kelvin</button>
+            </div>
+        </div>
+
+        <button onclick="handleConversion()">Convert</button>
+
+        <div class="result" id="result"></div>
+    </div>
+
+    <script>
+        let inputType = "celsius";
+        let outputType = "fahrenheit";
+
+        function setInputType(type) {
+            inputType = type;
+            highlightSelected("inputButtons", type);
+        }
+
+        function setOutputType(type) {
+            outputType = type;
+            highlightSelected("outputButtons", type);
+        }
+
+        function switchTypes() {
+            const temp = inputType;
+            inputType = outputType;
+            outputType = temp;
+            highlightSelected("inputButtons", inputType);
+            highlightSelected("outputButtons", outputType);
+        }
+
+        function highlightSelected(groupId, selectedType) {
+            const buttons = document.getElementById(groupId).children;
+            for (const button of buttons) {
+                if (button.innerText.toLowerCase() === selectedType.toLowerCase()) {
+                    button.style.backgroundColor = "#0056b3";
+                } else {
+                    button.style.backgroundColor = "#007BFF";
+                }
+            }
+        }
+
+        function convertTemperature(value, inputType, outputType) {
+            let result;
+
+            // Convert input to Kelvin first
+            switch (inputType.toLowerCase()) {
+                case "celsius":
+                    value = parseFloat(value) + 273.15;
+                    break;
+                case "fahrenheit":
+                    value = (parseFloat(value) - 32) * (5 / 9) + 273.15;
+                    break;
+                case "kelvin":
+                    value = parseFloat(value);
+                    break;
+                default:
+                    throw new Error("Invalid input type");
+            }
+
+            // Convert from Kelvin to the desired output type
+            switch (outputType.toLowerCase()) {
+                case "celsius":
+                    result = value - 273.15;
+                    break;
+                case "fahrenheit":
+                    result = (value - 273.15) * (9 / 5) + 32;
+                    break;
+                case "kelvin":
+                    result = value;
+                    break;
+                default:
+                    throw new Error("Invalid output type");
+            }
+
+            return result;
+        }
+
+        function handleConversion() {
+            const inputValue = document.getElementById("inputValue").value;
+
+            try {
+                const convertedTemperature = convertTemperature(inputValue, inputType, outputType);
+                document.getElementById("result").innerText = `The converted temperature is: ${convertedTemperature.toFixed(2)} ${outputType}`;
+            } catch (error) {
+                document.getElementById("result").innerText = error.message;
+            }
+        }
+
+        // Initialize default button highlights
+        highlightSelected("inputButtons", inputType);
+        highlightSelected("outputButtons", outputType);
+    </script>
+</body>
+</html>
