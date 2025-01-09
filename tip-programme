@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tip Calculator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            padding: 20px;
+            background-color: #f9f9f9;
+            color: #333;
+        }
+        .container {
+            max-width: 400px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        label {
+            display: block;
+            margin: 10px 0 5px;
+        }
+        input, select {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 10px;
+            background: #e9ecef;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Tip Calculator</h2>
+        <label for="totalBill">Total Bill Amount:</label>
+        <input type="number" id="totalBill" placeholder="Enter total bill amount">
+
+        <label for="currency">Currency:</label>
+        <select id="currency">
+            <option value="$">USD</option>
+            <option value="£">GBP</option>
+            <option value="€">Euro</option>
+        </select>
+
+        <label for="tipPercentage">Tip Percentage:</label>
+        <input type="number" id="tipPercentage" placeholder="Enter tip percentage (e.g., 15)">
+
+        <label for="numPeople">Number of People:</label>
+        <input type="number" id="numPeople" placeholder="Enter number of people">
+
+        <label for="individualContributions">Individual Contributions (comma-separated):</label>
+        <input type="text" id="individualContributions" placeholder="e.g., 50,30,20">
+
+        <button onclick="calculateTipUI()">Calculate</button>
+
+        <div class="result" id="result" style="display: none;">
+            <p id="tipAmount"></p>
+            <p id="totalAmount"></p>
+            <p id="perPersonAmount"></p>
+        </div>
+    </div>
+
+    <script>
+        function calculateTip(totalBill, tipPercentage, numPeople = 1, contributions = []) {
+            if (totalBill <= 0 || tipPercentage <= 0 || numPeople <= 0) {
+                return "Total bill, tip percentage, and number of people must be greater than zero.";
+            }
+
+            const tipAmount = (totalBill * tipPercentage) / 100;
+            const totalAmount = totalBill + tipAmount;
+
+            const totalContributions = contributions.reduce((sum, contribution) => sum + contribution, 0);
+            const remainingAmount = totalBill - totalContributions;
+            const numRemainingPeople = numPeople - contributions.length;
+
+            let remainingDetails = null;
+
+            if (remainingAmount > 0 && numRemainingPeople > 0) {
+                const splitRemainingAmount = remainingAmount / numRemainingPeople;
+                const splitTipAmount = (splitRemainingAmount / totalBill) * tipAmount;
+                const totalRemaining = splitRemainingAmount + splitTipAmount;
+
+                remainingDetails = {
+                    tip: (splitTipAmount * numRemainingPeople).toFixed(2),
+                    total: (totalRemaining * numRemainingPeople).toFixed(2),
+                };
+            }
+
+            const contributionDetails = contributions.map(contribution => {
+                const personTip = (contribution / totalBill) * tipAmount;
+                const personTotal = contribution + personTip;
+                return {
+                    tip: personTip.toFixed(2),
+                    total: personTotal.toFixed(2),
+                };
+            });
+
+            return {
+                tipAmount: tipAmount.toFixed(2),
+                totalAmount: totalAmount.toFixed(2),
+                contributionDetails,
+                remainingDetails,
+            };
+        }
+
+        function calculateTipUI() {
+            const totalBill = parseFloat(document.getElementById('totalBill').value);
+            const tipPercentage = parseFloat(document.getElementById('tipPercentage').value);
+            const numPeople = parseInt(document.getElementById('numPeople').value, 10);
+            const currency = document.getElementById('currency').value;
+            const contributionsInput = document.getElementById('individualContributions').value;
+            const contributions = contributionsInput
+                .split(',')
+                .map(value => parseFloat(value.trim()))
+                .filter(value => !isNaN(value));
+
+            const result = calculateTip(totalBill, tipPercentage, numPeople, contributions);
+
+            const resultDiv = document.getElementById('result');
+            const tipAmountP = document.getElementById('tipAmount');
+            const totalAmountP = document.getElementById('totalAmount');
+            const perPersonAmountP = document.getElementById('perPersonAmount');
+
+            if (typeof result === "string") {
+                resultDiv.style.display = "block";
+                tipAmountP.textContent = result;
+                totalAmountP.textContent = "";
+                perPersonAmountP.textContent = "";
+            } else {
+                resultDiv.style.display = "block";
+                tipAmountP.textContent = `Tip Amount: ${currency}${result.tipAmount}`;
+                totalAmountP.textContent = `Total Amount (including tip): ${currency}${result.totalAmount}`;
+
+                let output = result.contributionDetails.map(
+                    (person, index) => `Person ${index + 1}: Total ${currency}${person.total} (Tip: ${currency}${person.tip})`
+                ).join('<br>');
+
+                if (result.remainingDetails) {
+                    output += `<br>Everybody Else: Total ${currency}${result.remainingDetails.total} (Tip: ${currency}${result.remainingDetails.tip})`;
+                }
+
+                perPersonAmountP.innerHTML = output;
+            }
+        }
+    </script>
+</body>
+</html>
