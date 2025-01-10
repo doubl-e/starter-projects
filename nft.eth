@@ -1,0 +1,17 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+
+contract MyNFT is ERC721 {
+    uint256 private _tokenIds;
+    uint256 public constant maxSupply = 3333;
+
+    constructor() ERC721("Guvnors", "GUV") {}
+
+    function mint(address to) public {
+        require(_tokenIds < maxSupply, "Max supply reached");
+        _tokenIds++;
+        _safeMint(to, _tokenIds);
+    }
+}
