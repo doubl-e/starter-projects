@@ -1,0 +1,21 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
+
+contract Chinus is ERC20, Ownable {
+    constructor() ERC20("Chinus", "CHIN") Ownable(msg.sender) {
+        // Mint initial supply of 3 tokens to the contract deployer
+        _mint(msg.sender, 3 * (10 ** decimals()));
+    }
+
+    /**
+     * @dev Mint new tokens. Restricted to the owner of the contract.
+     * @param to The address that will receive the newly minted tokens.
+     * @param amount The number of tokens to mint (without taking decimals into account).
+     */
+    function mint(address to, uint256 amount) external onlyOwner {
+        _mint(to, amount * (10 ** decimals()));
+    }
+}
